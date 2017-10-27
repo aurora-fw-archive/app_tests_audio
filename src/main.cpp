@@ -1,6 +1,3 @@
-# app-tests-audio
-
-```cpp
 /****************************************************************************
 ** ┌─┐┬ ┬┬─┐┌─┐┬─┐┌─┐  ┌─┐┬─┐┌─┐┌┬┐┌─┐┬ ┬┌─┐┬─┐┬┌─
 ** ├─┤│ │├┬┘│ │├┬┘├─┤  ├┤ ├┬┘├─┤│││├┤ ││││ │├┬┘├┴┐
@@ -18,4 +15,31 @@
 ** ensure the GNU General Public License version 3 requirements will be
 ** met: https://www.gnu.org/licenses/gpl-3.0.html.
 ****************************************************************************/
-```
+
+#include <AuroraFW/Aurora.h>
+
+#include <exception>
+
+using namespace AuroraFW;
+using namespace AudioManager;
+
+Application *app;
+
+afwslot appMainFunction()
+{
+	try {
+		AuroraFW::Debug::Log("Creating a new AudioFile (it calls AudioBackend constructor)");
+		AudioFile audioFile;
+	} catch(AudioDeviceNotFoundException& e) {
+		CLI::Log(CLI::Warning, e.what());
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	app = new Application(appMainFunction, argc, argv);
+
+	delete app;
+
+	return EXIT_SUCCESS;
+}
