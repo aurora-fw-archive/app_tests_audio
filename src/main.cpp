@@ -28,21 +28,24 @@ Application *app;
 afwslot appMainFunction()
 {
 	try {
+		// Initializes AudioBackend
 		AuroraFW::Debug::Log("Assigning a custom device named \"OpenAL Soft\" to AudioBackend");
 		AudioBackend audioBackend = AudioBackend::getInstance();
 		audioBackend.setDevice("High Definition Audio Controller Digital Stereo (HDMI)");
 
+		// Prints all available OutputDevices
 		char* outputDevices = audioBackend.getOutputDevices();
-		CLI::Log(CLI::Information, "Available output devices:");
-		while(outputDevices && *outputDevices !=NULL) {
+		CLI::Log(CLI::Information, "  Available output devices:");
+		while(outputDevices && *outputDevices != '\0') {
 			CLI::Log(CLI::Information, "- ", outputDevices);
 
 			outputDevices += strlen(outputDevices) + 1;
 		}
 
+		// Prints all available InputDevices
 		char* inputDevices = audioBackend.getInputDevices();
-		CLI::Log(CLI::Information, "Available input devices:");
-		while(inputDevices && *inputDevices !=NULL) {
+		CLI::Log(CLI::Information, "  Available input devices:");
+		while(inputDevices && *inputDevices != '\0') {
 			CLI::Log(CLI::Information, "- ", inputDevices);
 
 			inputDevices += strlen(inputDevices) + 1;
