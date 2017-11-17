@@ -29,27 +29,17 @@ afwslot appMainFunction()
 {
 	try {
 		// Initializes AudioBackend
-		AuroraFW::Debug::Log("Assigning a custom device named \"OpenAL Soft\" to AudioBackend");
+		AuroraFW::Debug::Log("Getting access to the AudioBackend");
 		AudioBackend audioBackend = AudioBackend::getInstance();
-		audioBackend.setDevice("High Definition Audio Controller Digital Stereo (HDMI)");
+		AuroraFW::Debug::Log("AudioBackend initialized.");
 
-		// Prints all available OutputDevices
-		char* outputDevices = audioBackend.getOutputDevices();
-		CLI::Log(CLI::Information, "  Available output devices:");
-		while(outputDevices && *outputDevices != '\0') {
-			CLI::Log(CLI::Information, "- ", outputDevices);
-
-			outputDevices += strlen(outputDevices) + 1;
+		// Prints all available devices
+		const AudioDevice *audioDevices = audioBackend.getAllDevices();
+		CLI::Log(CLI::Notice, "Printing available audio devices...");
+		for(int i = 0; i < audioBackend.getNumDevices(); i++) {
+			CLI::Log(CLI::Information, i, " - ", audioDevices[i].getName());
 		}
-
-		// Prints all available InputDevices
-		char* inputDevices = audioBackend.getInputDevices();
-		CLI::Log(CLI::Information, "  Available input devices:");
-		while(inputDevices && *inputDevices != '\0') {
-			CLI::Log(CLI::Information, "- ", inputDevices);
-
-			inputDevices += strlen(inputDevices) + 1;
-		}
+		
 	} catch(AudioDeviceNotFoundException& e) {
 		CLI::Log(CLI::Warning, e.what());
 	}
