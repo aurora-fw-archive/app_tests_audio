@@ -34,10 +34,12 @@ afwslot appMainFunction()
 		AuroraFW::Debug::Log("AudioBackend initialized.");
 
 		// Prints all available devices
-		const AudioDevice *audioDevices = audioBackend.getAllDevices();
+		AudioDevice *audioDevices = audioBackend.getAllDevices();
 		CLI::Log(CLI::Notice, "Printing available audio devices...");
 		for(int i = 0; i < audioBackend.getNumDevices(); i++) {
-			CLI::Log(CLI::Information, i, " - ", audioDevices[i].getName());
+			CLI::Log(CLI::Information, i, " - ", audioDevices[i].getName(),
+			Pa_GetDefaultOutputDevice() == i ? " [Default Output Device]" : "",
+			Pa_GetDefaultInputDevice() == i ? " [Default Input Device]" : "");
 		}
 		
 	} catch(AudioDeviceNotFoundException& e) {
