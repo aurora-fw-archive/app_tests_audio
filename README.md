@@ -1,4 +1,4 @@
-# app-tests-audio
+# app_tests_audio [![CodeFactor](https://www.codefactor.io/repository/github/aurora-fw/app_tests_audio/badge)](https://www.codefactor.io/repository/github/aurora-fw/app_tests_audio)
 
 ```cpp
 /****************************************************************************
