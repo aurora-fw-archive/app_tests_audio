@@ -64,7 +64,6 @@ afwslot appMainFunction()
 		delete[] audioDevices;
 		delete[] audioInputDevices;
 		delete[] audioOutputDevices;
-
 	} catch(AudioDeviceNotFoundException& e) {
 		CLI::Log(CLI::Warning, e.what());
 	}
