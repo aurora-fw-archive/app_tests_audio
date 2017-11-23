@@ -62,9 +62,12 @@ afwslot appMainFunction()
 		AuroraFW::Debug::Log("Size of AudioSource: ", sizeof(audioSource));
 
 		delete[] audioDevices;
+<<<<<<< HEAD
 		delete[] audioInputDevices;
 		delete[] audioOutputDevices;
 
+=======
+>>>>>>> db45c10aba4204e62135bbf2d09ff4e7f6523b74
 	} catch(AudioDeviceNotFoundException& e) {
 		CLI::Log(CLI::Warning, e.what());
 	}
