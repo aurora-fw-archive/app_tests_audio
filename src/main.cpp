@@ -18,8 +18,6 @@
 
 #include <AuroraFW/Aurora.h>
 
-#include <exception>
-
 using namespace AuroraFW;
 using namespace AudioManager;
 
