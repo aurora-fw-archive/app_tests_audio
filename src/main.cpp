@@ -37,7 +37,7 @@ afwslot appMainFunction()
 		const AudioDevice *audioDevices = audioBackend.getAllDevices();
 		CLI::Log(CLI::Notice, "Printing all available audio devices...");
 		for(int i = 0; i < audioBackend.getNumDevices(); i++) {
-			CLI::Log(CLI::Information, i, " - ", audioDevices[i].getName(),
+			CLI::Log(CLI::Information, i + 1, " - ", audioDevices[i].getName(),
 			audioDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "",
 			audioDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
 		}
@@ -46,7 +46,7 @@ afwslot appMainFunction()
 		const AudioDevice *audioOutputDevices = audioBackend.getOutputDevices();
 		CLI::Log(CLI::Notice, "Printing all available output audio devices...");
 		for(int i = 0; i < audioBackend.getNumOutputDevices(); i++) {
-			CLI::Log(CLI::Information, i, " - ", audioOutputDevices[i].getName(),
+			CLI::Log(CLI::Information, i + 1, " - ", audioOutputDevices[i].getName(),
 			audioOutputDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "");
 		}
 
@@ -54,17 +54,25 @@ afwslot appMainFunction()
 		const AudioDevice *audioInputDevices = audioBackend.getInputDevices();
 		CLI::Log(CLI::Notice, "Printing all available input audio devices...");
 		for(int i = 0; i < audioBackend.getNumInputDevices(); i++) {
-			CLI::Log(CLI::Information, i, " - ", audioInputDevices[i].getName(),
+			CLI::Log(CLI::Information, i + 1, " - ", audioInputDevices[i].getName(),
 			audioInputDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
 		}
-
-		AudioSource audioSource(AudioStream("Testing"), 0, 5, 11);
-		AuroraFW::Debug::Log("Size of AudioSource: ", sizeof(audioSource));
 
 		delete[] audioDevices;
 		delete[] audioInputDevices;
 		delete[] audioOutputDevices;
-	} catch(AudioDeviceNotFoundException& e) {
+
+		// Gets ready to output audio
+		AudioStream debugSound;
+		CLI::Log(CLI::Notice, "Playing now a debug sawtooth wave for 3 seconds...");
+		debugSound.startStream();
+
+		// DEBUG: Sleeps for 3 seconds
+		Pa_Sleep(3000);
+
+		debugSound.stopStream();
+		CLI::Log(CLI::Notice, "Stopped stream.");
+	} catch(AudioFileNotFound& e) {
 		CLI::Log(CLI::Warning, e.what());
 	}
 }
