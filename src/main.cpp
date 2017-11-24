@@ -38,8 +38,8 @@ afwslot appMainFunction()
 		CLI::Log(CLI::Notice, "Printing all available audio devices...");
 		for(int i = 0; i < audioBackend.getNumDevices(); i++) {
 			CLI::Log(CLI::Information, i, " - ", audioDevices[i].getName(),
-			Pa_GetDefaultOutputDevice() == i ? " [Default Output Device]" : "",
-			Pa_GetDefaultInputDevice() == i ? " [Default Input Device]" : "");
+			audioDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "",
+			audioDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
 		}
 
 		// Prints all available output devices
@@ -47,7 +47,7 @@ afwslot appMainFunction()
 		CLI::Log(CLI::Notice, "Printing all available output audio devices...");
 		for(int i = 0; i < audioBackend.getNumOutputDevices(); i++) {
 			CLI::Log(CLI::Information, i, " - ", audioOutputDevices[i].getName(),
-			Pa_GetDefaultOutputDevice() == i ? " [Default Output Device]" : "");
+			audioOutputDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "");
 		}
 
 		// Prints all available input devices
@@ -55,10 +55,10 @@ afwslot appMainFunction()
 		CLI::Log(CLI::Notice, "Printing all available input audio devices...");
 		for(int i = 0; i < audioBackend.getNumInputDevices(); i++) {
 			CLI::Log(CLI::Information, i, " - ", audioInputDevices[i].getName(),
-			Pa_GetDefaultInputDevice() == i ? " [Default Input Device]" : "");
+			audioInputDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
 		}
 
-		AudioSource audioSource(0, 5, 11, AudioStream("Testing"));
+		AudioSource audioSource(AudioStream("Testing"), 0, 5, 11);
 		AuroraFW::Debug::Log("Size of AudioSource: ", sizeof(audioSource));
 
 		delete[] audioDevices;
