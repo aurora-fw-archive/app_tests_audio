@@ -31,6 +31,9 @@ afwslot appMainFunction()
 		AudioBackend audioBackend = AudioBackend::getInstance();
 		AuroraFW::Debug::Log("AudioBackend initialized.");
 
+		// Default output device.
+		AudioDevice *defaultDevice;
+
 		// Prints all available devices
 		const AudioDevice *audioDevices = audioBackend.getAllDevices();
 		CLI::Log(CLI::Notice, "Printing all available audio devices...");
@@ -56,20 +59,36 @@ afwslot appMainFunction()
 			audioInputDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
 		}
 
+		// Prints information about the default input/output device
+		defaultDevice = new AudioDevice();
+		CLI::Log(CLI::Notice, "Printing info for default output device. [", defaultDevice->getName(), "]");
+		CLI::Log(CLI::Notice, "Name: ", defaultDevice->getName());
+		CLI::Log(CLI::Notice, "Maximum input channels: ", defaultDevice->getMaxInputChannels());
+		CLI::Log(CLI::Notice, "Maximum output channels: ", defaultDevice->getMaxOutputChannels());
+		CLI::Log(CLI::Notice, "Default low input latency: ", defaultDevice->getDefaultLowInputLatency());
+		CLI::Log(CLI::Notice, "Default low output latency: ", defaultDevice->getDefaultLowOutputLatency());
+		CLI::Log(CLI::Notice, "Default high input latency: ", defaultDevice->getDefaultHighInputLatency());
+		CLI::Log(CLI::Notice, "Default high input latency: ", defaultDevice->getDefaultHighOutputLatency());
+		CLI::Log(CLI::Notice, "Default sample rate: ", defaultDevice->getDefaultSampleRate());
+
+		delete defaultDevice;
+
+		// Gets ready to output audio
+		AudioStream debugSound("example.ogg");
+		CLI::Log(CLI::Notice, "Playing now a example sound file for 15 seconds...");
+		debugSound.startStream();
+
+		// Waits until the song is over
+		while(debugSound.isStreamPlaying()) {}
+
+		debugSound.stopStream();
+		CLI::Log(CLI::Notice, "Stopped stream.");
+
+		// Cleans declared pointers
 		delete[] audioDevices;
 		delete[] audioInputDevices;
 		delete[] audioOutputDevices;
 
-		// Gets ready to output audio
-		AudioStream debugSound;
-		CLI::Log(CLI::Notice, "Playing now a debug sawtooth wave for 3 seconds...");
-		debugSound.startStream();
-
-		// DEBUG: Sleeps for 3 seconds
-		Pa_Sleep(3000);
-
-		debugSound.stopStream();
-		CLI::Log(CLI::Notice, "Stopped stream.");
 	} catch(AudioFileNotFound& e) {
 		CLI::Log(CLI::Warning, e.what());
 	}
