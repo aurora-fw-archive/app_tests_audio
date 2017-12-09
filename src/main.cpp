@@ -18,10 +18,17 @@
 
 #include <AuroraFW/Aurora.h>
 
+#include <string>
+#include <iostream>
+
 using namespace AuroraFW;
 using namespace AudioManager;
 
 Application *app;
+std::string fileName;
+bool printInfo;
+
+using namespace std;
 
 afwslot appMainFunction()
 {
@@ -31,71 +38,129 @@ afwslot appMainFunction()
 		AudioBackend audioBackend = AudioBackend::getInstance();
 		AuroraFW::Debug::Log("AudioBackend initialized.");
 
-		// Default output device.
-		AudioDevice *defaultDevice;
+		if(printInfo) {
+			// Default output device.
+			AudioDevice *defaultDevice;
 
-		// Prints all available devices
-		const AudioDevice *audioDevices = audioBackend.getAllDevices();
-		CLI::Log(CLI::Notice, "Printing all available audio devices...");
-		for(int i = 0; i < audioBackend.getNumDevices(); i++) {
-			CLI::Log(CLI::Information, i + 1, " - ", audioDevices[i].getName(),
-			audioDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "",
-			audioDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
+			// Prints all available devices
+			const AudioDevice *audioDevices = audioBackend.getAllDevices();
+			CLI::Log(CLI::Notice, "Printing all available audio devices...");
+			for(int i = 0; i < audioBackend.getNumDevices(); i++) {
+				CLI::Log(CLI::Information, i + 1, " - ", audioDevices[i].getName(),
+				audioDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "",
+				audioDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
+			}
+
+			// Prints all available output devices
+			const AudioDevice *audioOutputDevices = audioBackend.getOutputDevices();
+			CLI::Log(CLI::Notice, "Printing all available output audio devices...");
+			for(int i = 0; i < audioBackend.getNumOutputDevices(); i++) {
+				CLI::Log(CLI::Information, i + 1, " - ", audioOutputDevices[i].getName(),
+				audioOutputDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "");
+			}
+
+			// Prints all available input devices
+			const AudioDevice *audioInputDevices = audioBackend.getInputDevices();
+			CLI::Log(CLI::Notice, "Printing all available input audio devices...");
+			for(int i = 0; i < audioBackend.getNumInputDevices(); i++) {
+				CLI::Log(CLI::Information, i + 1, " - ", audioInputDevices[i].getName(),
+				audioInputDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
+			}
+
+			// Prints information about the default input/output device
+			defaultDevice = new AudioDevice();
+			CLI::Log(CLI::Notice, "Printing info for default output device. [", defaultDevice->getName(), "]");
+			CLI::Log(CLI::Notice, "Name: ", defaultDevice->getName());
+			CLI::Log(CLI::Notice, "Maximum input channels: ", defaultDevice->getMaxInputChannels());
+			CLI::Log(CLI::Notice, "Maximum output channels: ", defaultDevice->getMaxOutputChannels());
+			CLI::Log(CLI::Notice, "Default low input latency: ", defaultDevice->getDefaultLowInputLatency());
+			CLI::Log(CLI::Notice, "Default low output latency: ", defaultDevice->getDefaultLowOutputLatency());
+			CLI::Log(CLI::Notice, "Default high input latency: ", defaultDevice->getDefaultHighInputLatency());
+			CLI::Log(CLI::Notice, "Default high input latency: ", defaultDevice->getDefaultHighOutputLatency());
+			CLI::Log(CLI::Notice, "Default sample rate: ", defaultDevice->getDefaultSampleRate());
+
+			// Cleans declared pointers
+			delete defaultDevice;
+			delete[] audioDevices;
+			delete[] audioInputDevices;
+			delete[] audioOutputDevices;
 		}
-
-		// Prints all available output devices
-		const AudioDevice *audioOutputDevices = audioBackend.getOutputDevices();
-		CLI::Log(CLI::Notice, "Printing all available output audio devices...");
-		for(int i = 0; i < audioBackend.getNumOutputDevices(); i++) {
-			CLI::Log(CLI::Information, i + 1, " - ", audioOutputDevices[i].getName(),
-			audioOutputDevices[i].isDefaultOutputDevice() ? " [Default Output Device]" : "");
-		}
-
-		// Prints all available input devices
-		const AudioDevice *audioInputDevices = audioBackend.getInputDevices();
-		CLI::Log(CLI::Notice, "Printing all available input audio devices...");
-		for(int i = 0; i < audioBackend.getNumInputDevices(); i++) {
-			CLI::Log(CLI::Information, i + 1, " - ", audioInputDevices[i].getName(),
-			audioInputDevices[i].isDefaultInputDevice() ? " [Default Input Device]" : "");
-		}
-
-		// Prints information about the default input/output device
-		defaultDevice = new AudioDevice();
-		CLI::Log(CLI::Notice, "Printing info for default output device. [", defaultDevice->getName(), "]");
-		CLI::Log(CLI::Notice, "Name: ", defaultDevice->getName());
-		CLI::Log(CLI::Notice, "Maximum input channels: ", defaultDevice->getMaxInputChannels());
-		CLI::Log(CLI::Notice, "Maximum output channels: ", defaultDevice->getMaxOutputChannels());
-		CLI::Log(CLI::Notice, "Default low input latency: ", defaultDevice->getDefaultLowInputLatency());
-		CLI::Log(CLI::Notice, "Default low output latency: ", defaultDevice->getDefaultLowOutputLatency());
-		CLI::Log(CLI::Notice, "Default high input latency: ", defaultDevice->getDefaultHighInputLatency());
-		CLI::Log(CLI::Notice, "Default high input latency: ", defaultDevice->getDefaultHighOutputLatency());
-		CLI::Log(CLI::Notice, "Default sample rate: ", defaultDevice->getDefaultSampleRate());
-
-		delete defaultDevice;
 
 		// Gets ready to output audio
-		AudioStream debugSound("example.ogg");
-		CLI::Log(CLI::Notice, "Playing now a example sound file for 15 seconds...");
-		debugSound.startStream();
+		AudioStream debugSound(fileName.c_str());
+
+		if(fileName == "") {
+			CLI::Log(CLI::Notice, "Created debug sound. This will make a loud noise, turn down your volume!");
+			Pa_Sleep(3000);
+			for(int i = 5; i > 0; i--) {
+				CLI::Log(CLI::Notice, i);
+				Pa_Sleep(1000);
+			}
+
+			debugSound.play();
+			CLI::Log(CLI::Notice, "Playing debug sound for 5 seconds.");
+			Pa_Sleep(5000);
+			debugSound.stop();
+			CLI::Log(CLI::Notice, "Closed stream.");
+			return;
+		}
+		
+		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end...");
+		debugSound.play();
 
 		// Waits until the song is over
-		while(debugSound.isStreamPlaying()) {}
+		while(debugSound.isPlaying()) {}
 
-		debugSound.stopStream();
+		CLI::Log(CLI::Notice, "Sound is over, attempting to stop it...");
+		debugSound.stop();
 		CLI::Log(CLI::Notice, "Stopped stream.");
 
-		// Cleans declared pointers
-		delete[] audioDevices;
-		delete[] audioInputDevices;
-		delete[] audioOutputDevices;
+		CLI::Log(CLI::Notice, "Now playing the sound for 3 seconds, pausing it 1 second, playing it for 2 seconds then stopping it...");
+		debugSound.play();
+		Pa_Sleep(3000);
+		debugSound.pause();
+		Pa_Sleep(1000);
+		debugSound.play();
+		Pa_Sleep(2000);
+		debugSound.stop();
+		CLI::Log(CLI::Notice, "Stream was stopped successfully.");
 
+		return;
 	} catch(AudioFileNotFound& e) {
+		CLI::Log(CLI::Warning, e.what());
+	} catch(PAErrorException& e) {
 		CLI::Log(CLI::Warning, e.what());
 	}
 }
 
 int main(int argc, char *argv[])
 {
+	for(int i = 0; i < argc; i++) {
+		// Help argument
+		if(std::string(argv[i]) == "--help") {
+			cout <<
+			"audio - play a music file\n"
+			"\n"
+			"usage: audio | --afw-debug | -p | [-o fileName]\n"
+			"\n"
+			"\n"
+			"Options:\n"
+			"  --afw-debug		(Derived from AuroraFW) Activates AuroraFW debug mode \n"
+			"  -p			Prints input/output devices' info\n"
+			"  -o [filename]		Open the \"fileName\" music file\n"
+			
+			<< endl;
+			return 0;
+		}
+		if(std::string(argv[i]) == "-p") {
+			printInfo = true;
+		}
+		// Argument to open a file
+		if(std::string(argv[i]) == "-o") {
+			fileName = argv[i+1];
+		}
+	}
+
 	app = new Application(appMainFunction, argc, argv);
 
 	delete app;
