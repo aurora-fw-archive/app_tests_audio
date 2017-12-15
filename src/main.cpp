@@ -25,8 +25,10 @@ using namespace AuroraFW;
 using namespace AudioManager;
 
 Application *app;
-std::string fileName;
-bool printInfo;
+std::string fileName("");
+float volume = 1;
+bool noAudio;
+bool printInfo = true;
 
 using namespace std;
 
@@ -35,12 +37,14 @@ afwslot appMainFunction()
 	try {
 		// Initializes AudioBackend
 		AuroraFW::Debug::Log("Getting access to the AudioBackend");
-		AudioBackend audioBackend = AudioBackend::getInstance();
+		AudioBackend::start();
 		AuroraFW::Debug::Log("AudioBackend initialized.");
 
 		if(printInfo) {
 			// Default output device.
 			AudioDevice *defaultDevice;
+
+			AudioBackend audioBackend = AudioBackend::getInstance();
 
 			// Prints all available devices
 			const AudioDevice *audioDevices = audioBackend.getAllDevices();
@@ -86,6 +90,12 @@ afwslot appMainFunction()
 			delete[] audioOutputDevices;
 		}
 
+		// If the noaudio arg was used, quits immediately
+		if(noAudio) {
+			AudioBackend::terminate();
+			return;
+		}
+		
 		// Gets ready to output audio
 		AudioStream debugSound(fileName.c_str());
 
@@ -102,10 +112,13 @@ afwslot appMainFunction()
 			Pa_Sleep(5000);
 			debugSound.stop();
 			CLI::Log(CLI::Notice, "Closed stream.");
+			
+			AudioBackend::terminate();
 			return;
 		}
 		
-		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end...");
+		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end... (Volume: ", volume, ")");
+		debugSound.volume = volume;
 		debugSound.play();
 
 		// Waits until the song is over
@@ -115,21 +128,13 @@ afwslot appMainFunction()
 		debugSound.stop();
 		CLI::Log(CLI::Notice, "Stopped stream.");
 
-		CLI::Log(CLI::Notice, "Now playing the sound for 3 seconds, pausing it 1 second, playing it for 2 seconds then stopping it...");
-		debugSound.play();
-		Pa_Sleep(3000);
-		debugSound.pause();
-		Pa_Sleep(1000);
-		debugSound.play();
-		Pa_Sleep(2000);
-		debugSound.stop();
-		CLI::Log(CLI::Notice, "Stream was stopped successfully.");
-
+		// Terminates AudioBackend (and therefore PortAudio)
+		AudioBackend::terminate();
 		return;
-	} catch(AudioFileNotFound& e) {
-		CLI::Log(CLI::Warning, e.what());
-	} catch(PAErrorException& e) {
-		CLI::Log(CLI::Warning, e.what());
+	} catch(AudioFileNotFound e1) {
+		CLI::Log(CLI::Warning, e1.what());
+	} catch(PAErrorException e2) {
+		CLI::Log(CLI::Warning, e2.what());
 	}
 }
 
@@ -148,10 +153,12 @@ int main(int argc, char *argv[])
 			"  --afw-debug		(Derived from AuroraFW) Activates AuroraFW debug mode \n"
 			"  -p			Prints input/output devices' info\n"
 			"  -o [filename]		Open the \"fileName\" music file\n"
+			"  -v [volume=1]		Sets the volume for playback. It ranges from 0 to 1 (bigger values distort sound)\n"
 			
 			<< endl;
 			return 0;
 		}
+		// Argument to print device info
 		if(std::string(argv[i]) == "-p") {
 			printInfo = true;
 		}
@@ -159,9 +166,17 @@ int main(int argc, char *argv[])
 		if(std::string(argv[i]) == "-o") {
 			fileName = argv[i+1];
 		}
+		// Argument to not output any audio
+		if(std::string(argv[i]) == "-noaudio") {
+			noAudio = true;
+		}
+		// Argument to change volume
+		if(std::string(argv[i]) == "-v") {
+			volume = std::stof(std::string(argv[i+1]));
+		}
 	}
 
-	app = new Application(appMainFunction, argc, argv);
+	app = new Application(appMainFunction, 2, argv);
 
 	delete app;
 
