@@ -29,6 +29,7 @@ std::string fileName("");
 float volume = 1;
 bool noAudio;
 bool printInfo = true;
+bool audio3DCalcs = false;
 
 using namespace std;
 
@@ -39,6 +40,47 @@ afwslot appMainFunction()
 		AuroraFW::Debug::Log("Getting access to the AudioBackend");
 		AudioBackend::start();
 		AuroraFW::Debug::Log("AudioBackend initialized.");
+		float sourceX, sourceY, sourceZ, listenerX, listenerY, listenerZ;
+		AudioSource* audioSource;
+
+		if(audio3DCalcs) {
+			CLI::Output << "Audio3D calculations:\n\n";
+
+			// Asks for source's coordinates
+			/*CLI::Output << "Source:\n\n";
+			CLI::Output << "x: ";
+			CLI::Input >> sourceX;
+			CLI::Output << "y: ";
+			CLI::Input >> sourceY;
+			CLI::Output << "z: ";
+			CLI::Input >> sourceZ;*/
+
+			// Asks for listener's coordinates
+			CLI::Output << "Listener:\n\n";
+			CLI::Output << "x: ";
+			CLI::Input >> listenerX;
+			CLI::Output << "y: ";
+			CLI::Input >> listenerY;
+			CLI::Output << "z: ";
+			CLI::Input >> listenerZ;
+
+			// Updates locations of listener and source
+			AudioListener::getInstance().position = (listenerX, listenerY, listenerZ);
+			audioSource = new AudioSource(sourceX, sourceY, sourceZ);
+
+			// Gets the panning to output value
+			float pan = audioSource->getPanning();
+
+			CLI::Output << "Using AudioSource method: " << '\n';
+			CLI::Output << "Pan between -1 and 1: " << pan << std::endl;
+
+			// Calculates percentages
+			float leftPercent = -(100 * pan)/2 + 50;
+			float rightPercent = (100 * pan)/2 + 50;
+
+			CLI::Output << "Percentage in left ear: " << leftPercent << '\n';
+			CLI::Output << "Percentage in right ear: " << rightPercent << '\n';
+		}
 
 		if(printInfo) {
 			// Default output device.
@@ -97,7 +139,7 @@ afwslot appMainFunction()
 		}
 		
 		// Gets ready to output audio
-		AudioStream debugSound(fileName.c_str());
+		AudioStream debugSound(fileName.c_str(), AudioDevice(), audioSource);
 
 		if(fileName == "") {
 			CLI::Log(CLI::Notice, "Created debug sound. This will make a loud noise, turn down your volume!");
@@ -122,7 +164,16 @@ afwslot appMainFunction()
 		debugSound.play();
 
 		// Waits until the song is over
-		while(debugSound.isPlaying()) {}
+		int angle = 0;
+		while(debugSound.isPlaying())
+		{
+			// If 3D audio was enabled, makes the sound "spin" around the center
+			if(audioSource != nullptr) {
+				audioSource->setPosition(Math::Vector3D(Math::cos(Math::toRadians(angle)), 0, -Math::sin(Math::toRadians(angle))));
+				angle++;
+			}
+			Pa_Sleep(20);
+		}
 
 		CLI::Log(CLI::Notice, "Sound is over, attempting to stop it...");
 		debugSound.stop();
@@ -154,6 +205,8 @@ int main(int argc, char *argv[])
 			"  -p			Prints input/output devices' info\n"
 			"  -o [filename]		Open the \"fileName\" music file\n"
 			"  -v [volume=1]		Sets the volume for playback. It ranges from 0 to 1 (bigger values distort sound)\n"
+			"  -noaudio		Plays no audio (used for debugging)\n"
+			"  -audio3d		Simulates 3D audio (the audio source spins at the center)"
 			
 			<< endl;
 			return 0;
@@ -173,6 +226,10 @@ int main(int argc, char *argv[])
 		// Argument to change volume
 		if(std::string(argv[i]) == "-v") {
 			volume = std::stof(std::string(argv[i+1]));
+		}
+		// Argument to run special Audio3D calculations
+		if(std::string(argv[i]) == "-audio3d") {
+			audio3DCalcs = true;
 		}
 	}
 
