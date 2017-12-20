@@ -28,7 +28,7 @@ Application *app;
 std::string fileName("");
 float volume = 1;
 bool noAudio;
-bool printInfo = true;
+bool printInfo = false;
 bool audio3DCalcs = false;
 
 using namespace std;
@@ -65,7 +65,7 @@ afwslot appMainFunction()
 			CLI::Input >> listenerZ;
 
 			// Updates locations of listener and source
-			AudioListener::getInstance().position = (listenerX, listenerY, listenerZ);
+			AudioListener::getInstance().position = Math::Vector3D(listenerX, listenerY, listenerZ);
 			audioSource = new AudioSource(sourceX, sourceY, sourceZ);
 
 			// Gets the panning to output value
