@@ -207,7 +207,6 @@ int main(int argc, char *argv[])
 			"  -v [volume=1]		Sets the volume for playback. It ranges from 0 to 1 (bigger values distort sound)\n"
 			"  -noaudio		Plays no audio (used for debugging)\n"
 			"  -audio3d		Simulates 3D audio (the audio source spins at the center)"
-			
 			<< endl;
 			return 0;
 		}
