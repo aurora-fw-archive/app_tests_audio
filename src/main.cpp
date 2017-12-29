@@ -41,19 +41,10 @@ afwslot appMainFunction()
 		AudioBackend::start();
 		AuroraFW::Debug::Log("AudioBackend initialized.");
 		float sourceX, sourceY, sourceZ, listenerX, listenerY, listenerZ;
-		AudioSource* audioSource;
+		AudioSource audioSource;
 
 		if(audio3DCalcs) {
 			CLI::Output << "Audio3D calculations:\n\n";
-
-			// Asks for source's coordinates
-			/*CLI::Output << "Source:\n\n";
-			CLI::Output << "x: ";
-			CLI::Input >> sourceX;
-			CLI::Output << "y: ";
-			CLI::Input >> sourceY;
-			CLI::Output << "z: ";
-			CLI::Input >> sourceZ;*/
 
 			// Asks for listener's coordinates
 			CLI::Output << "Listener:\n\n";
@@ -66,10 +57,10 @@ afwslot appMainFunction()
 
 			// Updates locations of listener and source
 			AudioListener::getInstance().position = Math::Vector3D(listenerX, listenerY, listenerZ);
-			audioSource = new AudioSource(sourceX, sourceY, sourceZ);
+			audioSource.setPosition(Math::Vector3D(sourceX, sourceY, sourceZ));
 
 			// Gets the panning to output value
-			float pan = audioSource->getPanning();
+			float pan = audioSource.getPanning();
 
 			CLI::Output << "Using AudioSource method: " << '\n';
 			CLI::Output << "Pan between -1 and 1: " << pan << std::endl;
@@ -137,11 +128,10 @@ afwslot appMainFunction()
 			AudioBackend::terminate();
 			return;
 		}
-		
-		// Gets ready to output audio
-		AudioStream debugSound(fileName.c_str(), AudioDevice(), audioSource);
 
+		// Gets ready to output audio
 		if(fileName == "") {
+			AudioStream debugSound;
 			CLI::Log(CLI::Notice, "Created debug sound. This will make a loud noise, turn down your volume!");
 			Pa_Sleep(3000);
 			for(int i = 5; i > 0; i--) {
@@ -154,29 +144,30 @@ afwslot appMainFunction()
 			Pa_Sleep(5000);
 			debugSound.stop();
 			CLI::Log(CLI::Notice, "Closed stream.");
-			
+
 			AudioBackend::terminate();
 			return;
 		}
-		
+
+		AudioStream audioStream(fileName.c_str(), audio3DCalcs ? &audioSource : nullptr);
+
 		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end... (Volume: ", volume, ")");
-		debugSound.volume = volume;
-		debugSound.play();
+		audioStream.volume = volume;
+		audioStream.audioLoopMode = AudioLoopMode::Once;
+		audioStream.play();
 
 		// Waits until the song is over
 		int angle = 0;
-		while(debugSound.isPlaying())
+		while(audioStream.isPlaying())
 		{
 			// If 3D audio was enabled, makes the sound "spin" around the center
-			if(audioSource != nullptr) {
-				audioSource->setPosition(Math::Vector3D(Math::cos(Math::toRadians(angle)), 0, -Math::sin(Math::toRadians(angle))));
-				angle++;
-			}
+			audioSource.setPosition(Math::Vector3D(Math::cos(Math::toRadians(angle)), 0, -Math::sin(Math::toRadians(angle))));
+			angle++;
 			Pa_Sleep(20);
 		}
 
 		CLI::Log(CLI::Notice, "Sound is over, attempting to stop it...");
-		debugSound.stop();
+		audioStream.stop();
 		CLI::Log(CLI::Notice, "Stopped stream.");
 
 		// Terminates AudioBackend (and therefore PortAudio)
@@ -232,7 +223,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	app = new Application(appMainFunction, 2, argv);
+	app = new Application(appMainFunction, argc, argv);
 
 	delete app;
 
