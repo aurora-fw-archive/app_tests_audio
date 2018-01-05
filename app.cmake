@@ -22,6 +22,6 @@ endif()
 
 add_executable(aurorafw_app_tests_audio ${AURORAFW_APP_TESTS_AUDIO_SOURCE_DIR}/main.cpp)
 
-target_link_libraries(aurorafw_app_tests_audio aurorafw-core aurorafw-cli aurorafw-audio portaudio sndfile)
+target_link_libraries(aurorafw_app_tests_audio aurorafw-core aurorafw-cli aurorafw-audio)
 
 set_target_properties(aurorafw_app_tests_audio PROPERTIES OUTPUT_NAME aurorafw_app_tests_audio.out)
