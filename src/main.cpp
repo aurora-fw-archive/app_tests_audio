@@ -131,7 +131,7 @@ afwslot appMainFunction()
 
 		// Gets ready to output audio
 		if(fileName == "") {
-			AudioStream debugSound;
+			AudioOStream debugSound;
 			CLI::Log(CLI::Notice, "Created debug sound. This will make a loud noise, turn down your volume!");
 			Pa_Sleep(3000);
 			for(int i = 5; i > 0; i--) {
@@ -149,16 +149,20 @@ afwslot appMainFunction()
 			return;
 		}
 
-		AudioStream audioStream(fileName.c_str(), audio3DCalcs ? &audioSource : nullptr);
+		AudioOStream audioOStream(fileName.c_str(), audio3DCalcs ? &audioSource : nullptr);
 
 		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end... (Volume: ", volume, ")");
-		audioStream.volume = volume;
-		audioStream.audioLoopMode = AudioLoopMode::Once;
-		audioStream.play();
+		audioOStream.volume = volume;
+		audioOStream.audioPlayMode = AudioPlayMode::Once;
+		audioOStream.play();
+
+		// DEBUG: Prints size of audioOStream
+		CLI::Log(CLI::Notice, "AudioOStream size: " , sizeof(audioOStream));
+		CLI::Log(CLI::Notice, "AudioSource size: " , sizeof(audioSource));
 
 		// Waits until the song is over
 		int angle = 0;
-		while(audioStream.isPlaying())
+		while(audioOStream.isPlaying())
 		{
 			// If 3D audio was enabled, makes the sound "spin" around the center
 			audioSource.setPosition(Math::Vector3D(Math::cos(Math::toRadians(angle)), 0, -Math::sin(Math::toRadians(angle))));
@@ -167,7 +171,7 @@ afwslot appMainFunction()
 		}
 
 		CLI::Log(CLI::Notice, "Sound is over, attempting to stop it...");
-		audioStream.stop();
+		audioOStream.stop();
 		CLI::Log(CLI::Notice, "Stopped stream.");
 
 		// Terminates AudioBackend (and therefore PortAudio)
