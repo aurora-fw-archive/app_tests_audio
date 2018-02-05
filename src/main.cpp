@@ -31,6 +31,7 @@ bool noAudio;
 bool printInfo = false;
 bool audio3DCalcs = false;
 bool printAudioInfo = false;
+bool buffer = false;
 
 using namespace std;
 
@@ -38,6 +39,7 @@ afwslot appMainFunction()
 {
 	try {
 		// Initializes AudioBackend
+		Debug::enableDebug();
 		AuroraFW::Debug::Log("Getting access to the AudioBackend");
 		AudioBackend::start();
 		AuroraFW::Debug::Log("AudioBackend initialized.");
@@ -150,26 +152,36 @@ afwslot appMainFunction()
 			return;
 		}
 
-		AudioOStream audioOStream(fileName.c_str(), audio3DCalcs ? &audioSource : nullptr);
+		AudioOStream audioOStream(fileName.c_str(), audio3DCalcs ? &audioSource : nullptr, buffer);
 
 		if(printAudioInfo) {
 			CLI::Log(CLI::Notice, "Printing now audio info...");
-			CLI::Log(CLI::Notice, "Title     : ", audioOStream.audioInfo.getTitle());
-			CLI::Log(CLI::Notice, "Copyright : ", audioOStream.audioInfo.getCopyright());
-			CLI::Log(CLI::Notice, "Software  : ", audioOStream.audioInfo.getSoftware());
-			CLI::Log(CLI::Notice, "Artist    : ", audioOStream.audioInfo.getArtist());
-			CLI::Log(CLI::Notice, "Comment   : ", audioOStream.audioInfo.getComment());
-			CLI::Log(CLI::Notice, "Date      : ", audioOStream.audioInfo.getDate());
-			CLI::Log(CLI::Notice, "Album     : ", audioOStream.audioInfo.getAlbum());
-			CLI::Log(CLI::Notice, "License   : ", audioOStream.audioInfo.getLicense());
-			CLI::Log(CLI::Notice, "Track Nº  : ", audioOStream.audioInfo.getTrackNumber());
-			CLI::Log(CLI::Notice, "Genre     : ", audioOStream.audioInfo.getGenre());
+			CLI::Log(CLI::Notice, "Title       : ", audioOStream.audioInfo.getTitle());
+			CLI::Log(CLI::Notice, "Copyright   : ", audioOStream.audioInfo.getCopyright());
+			CLI::Log(CLI::Notice, "Software    : ", audioOStream.audioInfo.getSoftware());
+			CLI::Log(CLI::Notice, "Artist      : ", audioOStream.audioInfo.getArtist());
+			CLI::Log(CLI::Notice, "Comment     : ", audioOStream.audioInfo.getComment());
+			CLI::Log(CLI::Notice, "Date        : ", audioOStream.audioInfo.getDate());
+			CLI::Log(CLI::Notice, "Album       : ", audioOStream.audioInfo.getAlbum());
+			CLI::Log(CLI::Notice, "License     : ", audioOStream.audioInfo.getLicense());
+			CLI::Log(CLI::Notice, "Track Nº    : ", audioOStream.audioInfo.getTrackNumber());
+			CLI::Log(CLI::Notice, "Genre       : ", audioOStream.audioInfo.getGenre());
+			CLI::Log(CLI::Notice, "-----------------------------------");
+			CLI::Log(CLI::Notice, "Sample rate : ", audioOStream.audioInfo.getSampleRate());
+			CLI::Log(CLI::Notice, "Frames      : ", audioOStream.audioInfo.getFrames());
+			CLI::Log(CLI::Notice, "Channels    : ", audioOStream.audioInfo.getChannels());
+			CLI::Log(CLI::Notice, "Format      : ", audioOStream.audioInfo.getFormat());
 		}
 
 		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end... (Volume: ", volume, ")");
 		audioOStream.volume = volume;
 		audioOStream.audioPlayMode = AudioPlayMode::Once;
 		audioOStream.play();
+
+		CLI::Log(CLI::Information, "Debug status: ", Debug::getDebugStatus());
+
+		AuroraFW::Debug::Log("This should work.");
+		Debug::Log("Work goddamit");
 
 		// DEBUG: Prints size of audioOStream
 		CLI::Log(CLI::Notice, "AudioOStream size: " , sizeof(audioOStream));
@@ -244,6 +256,10 @@ int main(int argc, char *argv[])
 		// Argument to print audio info
 		if(std::string(argv[i]) == "-audioinfo") {
 			printAudioInfo = true;
+		}
+		// Argument to buffer the sound file
+		if(std::string(argv[i]) == "-buffer") {
+			buffer = true;
 		}
 	}
 
