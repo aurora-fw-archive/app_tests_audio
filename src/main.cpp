@@ -37,9 +37,9 @@ afwslot appMainFunction()
 {
 	try {
 		// Initializes AudioBackend
-		AuroraFW::Debug::Log("Getting access to the AudioBackend");
+		AuroraFW::DebugManager::Log("Getting access to the AudioBackend");
 		AudioBackend::start();
-		AuroraFW::Debug::Log("AudioBackend initialized.");
+		AuroraFW::DebugManager::Log("AudioBackend initialized.");
 		float sourceX, sourceY, sourceZ, listenerX, listenerY, listenerZ;
 		AudioSource audioSource;
 
