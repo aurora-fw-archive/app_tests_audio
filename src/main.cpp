@@ -30,6 +30,8 @@ float volume = 1;
 bool noAudio;
 bool printInfo = false;
 bool audio3DCalcs = false;
+bool printAudioInfo = false;
+bool buffer = false;
 
 using namespace std;
 
@@ -131,7 +133,7 @@ afwslot appMainFunction()
 
 		// Gets ready to output audio
 		if(fileName == "") {
-			AudioStream debugSound;
+			AudioOStream debugSound;
 			CLI::Log(CLI::Notice, "Created debug sound. This will make a loud noise, turn down your volume!");
 			Pa_Sleep(3000);
 			for(int i = 5; i > 0; i--) {
@@ -149,16 +151,44 @@ afwslot appMainFunction()
 			return;
 		}
 
-		AudioStream audioStream(fileName.c_str(), audio3DCalcs ? &audioSource : nullptr);
+		AudioOStream audioOStream(fileName.c_str(), audio3DCalcs ? &audioSource : nullptr, buffer);
+
+		if(printAudioInfo) {
+			CLI::Log(CLI::Notice, "Printing now audio info...");
+			CLI::Log(CLI::Notice, "Title       : ", audioOStream.audioInfo.getTitle());
+			CLI::Log(CLI::Notice, "Copyright   : ", audioOStream.audioInfo.getCopyright());
+			CLI::Log(CLI::Notice, "Software    : ", audioOStream.audioInfo.getSoftware());
+			CLI::Log(CLI::Notice, "Artist      : ", audioOStream.audioInfo.getArtist());
+			CLI::Log(CLI::Notice, "Comment     : ", audioOStream.audioInfo.getComment());
+			CLI::Log(CLI::Notice, "Date        : ", audioOStream.audioInfo.getDate());
+			CLI::Log(CLI::Notice, "Album       : ", audioOStream.audioInfo.getAlbum());
+			CLI::Log(CLI::Notice, "License     : ", audioOStream.audioInfo.getLicense());
+			CLI::Log(CLI::Notice, "Track Nº    : ", audioOStream.audioInfo.getTrackNumber());
+			CLI::Log(CLI::Notice, "Genre       : ", audioOStream.audioInfo.getGenre());
+			CLI::Log(CLI::Notice, "-----------------------------------");
+			CLI::Log(CLI::Notice, "Sample rate : ", audioOStream.audioInfo.getSampleRate());
+			CLI::Log(CLI::Notice, "Frames      : ", audioOStream.audioInfo.getFrames());
+			CLI::Log(CLI::Notice, "Channels    : ", audioOStream.audioInfo.getChannels());
+			CLI::Log(CLI::Notice, "Format      : ", audioOStream.audioInfo.getFormat());
+		}
 
 		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end... (Volume: ", volume, ")");
-		audioStream.volume = volume;
-		audioStream.audioLoopMode = AudioLoopMode::Once;
-		audioStream.play();
+		audioOStream.volume = volume;
+		audioOStream.audioPlayMode = AudioPlayMode::Once;
+		audioOStream.play();
+
+		CLI::Log(CLI::Information, "Debug status: ", Debug::getDebugStatus());
+
+		AuroraFW::Debug::Log("This should work.");
+		Debug::Log("Work goddamit");
+
+		// DEBUG: Prints size of audioOStream
+		CLI::Log(CLI::Notice, "AudioOStream size: " , sizeof(audioOStream));
+		CLI::Log(CLI::Notice, "AudioSource size: " , sizeof(audioSource));
 
 		// Waits until the song is over
 		int angle = 0;
-		while(audioStream.isPlaying())
+		while(audioOStream.isPlaying())
 		{
 			// If 3D audio was enabled, makes the sound "spin" around the center
 			audioSource.setPosition(Math::Vector3D(Math::cos(Math::toRadians(angle)), 0, -Math::sin(Math::toRadians(angle))));
@@ -167,7 +197,7 @@ afwslot appMainFunction()
 		}
 
 		CLI::Log(CLI::Notice, "Sound is over, attempting to stop it...");
-		audioStream.stop();
+		audioOStream.stop();
 		CLI::Log(CLI::Notice, "Stopped stream.");
 
 		// Terminates AudioBackend (and therefore PortAudio)
@@ -197,7 +227,8 @@ int main(int argc, char *argv[])
 			"  -o [filename]		Open the \"fileName\" music file\n"
 			"  -v [volume=1]		Sets the volume for playback. It ranges from 0 to 1 (bigger values distort sound)\n"
 			"  -noaudio		Plays no audio (used for debugging)\n"
-			"  -audio3d		Simulates 3D audio (the audio source spins at the center)"
+			"  -audio3d		Simulates 3D audio (the audio source spins at the center)\n"
+			"  -audioinfo	Print information about the audio file"
 			<< endl;
 			return 0;
 		}
@@ -220,6 +251,14 @@ int main(int argc, char *argv[])
 		// Argument to run special Audio3D calculations
 		if(std::string(argv[i]) == "-audio3d") {
 			audio3DCalcs = true;
+		}
+		// Argument to print audio info
+		if(std::string(argv[i]) == "-audioinfo") {
+			printAudioInfo = true;
+		}
+		// Argument to buffer the sound file
+		if(std::string(argv[i]) == "-buffer") {
+			buffer = true;
 		}
 	}
 
