@@ -177,10 +177,10 @@ afwslot appMainFunction()
 		audioOStream.audioPlayMode = AudioPlayMode::Once;
 		audioOStream.play();
 
-		CLI::Log(CLI::Information, "Debug status: ", Debug::getDebugStatus());
+		CLI::Log(CLI::Information, "Debug status: ", DebugManager::getStatus());
 
-		AuroraFW::Debug::Log("This should work.");
-		Debug::Log("Work goddamit");
+		AuroraFW::DebugManager::Log("This should work.");
+		DebugManager::Log("Work goddamit");
 
 		// DEBUG: Prints size of audioOStream
 		CLI::Log(CLI::Notice, "AudioOStream size: " , sizeof(audioOStream));
