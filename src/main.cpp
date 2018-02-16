@@ -107,7 +107,7 @@ afwslot appMainFunction(Application* )
 			}
 
 			// Prints information about the default input/output device
-			defaultDevice = new AudioDevice();
+			defaultDevice = AFW_NEW AudioDevice();
 			CLI::Log(CLI::Notice, "Printing info for default output device. [", defaultDevice->getName(), "]");
 			CLI::Log(CLI::Notice, "Name: ", defaultDevice->getName());
 			CLI::Log(CLI::Notice, "Maximum input channels: ", defaultDevice->getMaxInputChannels());
@@ -177,11 +177,6 @@ afwslot appMainFunction(Application* )
 		audioOStream.audioPlayMode = AudioPlayMode::Once;
 		audioOStream.play();
 
-		CLI::Log(CLI::Information, "Debug status: ", DebugManager::getStatus());
-
-		AuroraFW::DebugManager::Log("This should work.");
-		DebugManager::Log("Work goddamit");
-
 		// DEBUG: Prints size of audioOStream
 		CLI::Log(CLI::Notice, "AudioOStream size: " , sizeof(audioOStream));
 		CLI::Log(CLI::Notice, "AudioSource size: " , sizeof(audioSource));
@@ -238,7 +233,7 @@ int main(int argc, char *argv[])
 		}
 		// Argument to open a file
 		if(std::string(argv[i]) == "-o") {
-			fileName = argv[i+1];
+			fileName = std::string(argv[i+1]);
 		}
 		// Argument to not output any audio
 		if(std::string(argv[i]) == "-noaudio") {
@@ -262,7 +257,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	app = new Application(argc, argv, appMainFunction);
+	app = AFW_NEW Application(argc, argv, appMainFunction);
 
 	delete app;
 
