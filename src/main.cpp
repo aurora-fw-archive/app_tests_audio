@@ -35,7 +35,7 @@ bool buffer = false;
 
 using namespace std;
 
-afwslot appMainFunction()
+afwslot appMainFunction(Application* )
 {
 	try {
 		// Initializes AudioBackend
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	app = new Application(appMainFunction, argc, argv);
+	app = new Application(argc, argv, appMainFunction);
 
 	delete app;
 
