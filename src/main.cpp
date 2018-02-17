@@ -24,7 +24,6 @@
 using namespace AuroraFW;
 using namespace AudioManager;
 
-Application *app;
 std::string fileName("");
 float volume = 1;
 bool noAudio;
@@ -257,9 +256,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	app = AFW_NEW Application(argc, argv, appMainFunction);
-
-	delete app;
+	Application app(argc, argv, appMainFunction);
 
 	return EXIT_SUCCESS;
 }
