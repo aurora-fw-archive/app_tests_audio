@@ -31,6 +31,7 @@ bool printInfo = false;
 bool audio3DCalcs = false;
 bool printAudioInfo = false;
 bool buffer = false;
+bool loop = false;
 
 using namespace std;
 
@@ -173,7 +174,7 @@ afwslot appMainFunction(Application* )
 
 		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end... (Volume: ", volume, ")");
 		audioOStream.volume = volume;
-		audioOStream.audioPlayMode = AudioPlayMode::Once;
+		audioOStream.audioPlayMode = loop ? AudioPlayMode::Loop : AudioPlayMode::Once;
 		audioOStream.play();
 
 		// DEBUG: Prints size of audioOStream
@@ -222,7 +223,8 @@ int main(int argc, char *argv[])
 			"  -v [volume=1]		Sets the volume for playback. It ranges from 0 to 1 (bigger values distort sound)\n"
 			"  -noaudio		Plays no audio (used for debugging)\n"
 			"  -audio3d		Simulates 3D audio (the audio source spins at the center)\n"
-			"  -audioinfo	Print information about the audio file"
+			"  -audioinfo	Print information about the audio file\n"
+			"..-loop		Loops the audio infinitely"
 			<< endl;
 			return 0;
 		}
@@ -253,6 +255,10 @@ int main(int argc, char *argv[])
 		// Argument to buffer the sound file
 		if(std::string(argv[i]) == "-buffer") {
 			buffer = true;
+		}
+		// Argument to loop infinitely the audio
+		if(std::string(argv[i]) == "-loop") {
+			loop = true;
 		}
 	}
 
