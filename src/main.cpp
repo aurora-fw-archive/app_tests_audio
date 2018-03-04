@@ -26,12 +26,14 @@ using namespace AudioManager;
 
 std::string fileName("");
 float volume = 1;
+int numLoops = -1;
 bool noAudio;
 bool printInfo = false;
 bool audio3DCalcs = false;
 bool printAudioInfo = false;
 bool buffer = false;
 bool loop = false;
+bool getCpuLoad = false;
 
 using namespace std;
 
@@ -183,17 +185,31 @@ afwslot appMainFunction(Application* )
 
 		// Waits until the song is over
 		int angle = 0;
+		DebugManager::Log(sizeof(angle));
+		int numCallsCpuLoad = 0;
+		double totalCpuValues = 0;
 		while(audioOStream.isPlaying())
 		{
 			// If 3D audio was enabled, makes the sound "spin" around the center
 			audioSource.setPosition(Math::Vector3D(Math::cos(Math::toRadians(angle)), 0, -Math::sin(Math::toRadians(angle))));
 			angle++;
 			Pa_Sleep(20);
+
+			if(getCpuLoad) {
+				numCallsCpuLoad++;
+				totalCpuValues += audioOStream.getCpuLoad();
+			}
+
+			if(loop && audioOStream.getNumLoops() > numLoops - 1)
+				audioOStream.stop();
 		}
 
 		CLI::Log(CLI::Notice, "Sound is over, attempting to stop it...");
-		audioOStream.stop();
 		CLI::Log(CLI::Notice, "Stopped stream.");
+
+		if(getCpuLoad) {
+			CLI::Log(CLI::Notice, "The medium CPU load was ", (totalCpuValues / numCallsCpuLoad) * 100, "%");
+		}
 
 		// Terminates AudioBackend (and therefore PortAudio)
 		AudioBackend::terminate();
@@ -224,7 +240,8 @@ int main(int argc, char *argv[])
 			"  -noaudio		Plays no audio (used for debugging)\n"
 			"  -audio3d		Simulates 3D audio (the audio source spins at the center)\n"
 			"  -audioinfo	Print information about the audio file\n"
-			"..-loop		Loops the audio infinitely"
+			"  -loop [value=-1]	Loops the audio the num of times requested (-1 loops infinitely)\n"
+			"  -cpuLoad		Gets the medium CPU load"
 			<< endl;
 			return 0;
 		}
@@ -259,6 +276,11 @@ int main(int argc, char *argv[])
 		// Argument to loop infinitely the audio
 		if(std::string(argv[i]) == "-loop") {
 			loop = true;
+			numLoops = std::stof(std::string(argv[i+1]));
+		}
+		// Argument to get CPU load
+		if(std::string(argv[i]) == "-cpuLoad") {
+			getCpuLoad = true;
 		}
 	}
 
