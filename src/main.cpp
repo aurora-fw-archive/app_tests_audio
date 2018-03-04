@@ -175,7 +175,7 @@ afwslot appMainFunction(Application* )
 		}
 
 		CLI::Log(CLI::Notice, "Playing now the \"", fileName, "\" file until the end... (Volume: ", volume, ")");
-		audioOStream.volume = volume;
+		AudioBackend::getInstance().globalVolume = volume;
 		audioOStream.audioPlayMode = loop ? AudioPlayMode::Loop : AudioPlayMode::Once;
 		audioOStream.play();
 
