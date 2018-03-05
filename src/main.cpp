@@ -37,7 +37,7 @@ bool getCpuLoad = false;
 
 using namespace std;
 
-afwslot appMainFunction(Application* )
+void appMainFunction(Application* )
 {
 	try {
 		// Initializes AudioBackend
