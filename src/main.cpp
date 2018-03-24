@@ -34,6 +34,8 @@ bool printAudioInfo = false;
 bool buffer = false;
 bool loop = false;
 bool getCpuLoad = false;
+float inputTime = 0;
+std::string inputFilename("");
 
 using namespace std;
 
@@ -125,6 +127,38 @@ void appMainFunction(Application* )
 			delete[] audioDevices;
 			delete[] audioInputDevices;
 			delete[] audioOutputDevices;
+		}
+
+		// If the input arg was used, input the audio
+		if(inputTime != 0) {
+			AudioInfo* inputInfo = AFW_NEW AudioInfo();
+			inputInfo->setSampleRate(44100);
+			inputInfo->setChannels(2);
+			
+			inputInfo->setFormat(SF_FORMAT_OGG | SF_FORMAT_VORBIS);
+			DebugManager::Log(&inputInfo, "\t" , sizeof(inputInfo));
+			AudioIStream inputStream(inputFilename.c_str(), inputInfo, 44100 * inputTime);
+			CLI::Log(CLI::Notice, "The stream was now created. Audio will be recorded for ", inputTime,
+					" seconds and be saved to \"", inputFilename, "\"");
+			Pa_Sleep(3000);
+			CLI::Log(CLI::Notice, "Recording will begin in: ");
+			Pa_Sleep(1000);
+			for(int i = 3; i > 0; i--) {
+				CLI::Log(CLI::Notice, i);
+				Pa_Sleep(600);
+			}
+			inputStream.record();
+			CLI::Log(CLI::Notice, "Record has started. Speak now...");
+			while(inputStream.isRecording()) {
+
+			}
+
+			CLI::Log(CLI::Notice, "Recording has ended, attempting to close stream...");
+			inputStream.stop();
+			CLI::Log(CLI::Notice, "Stream stopped. Now recording into disk...");
+			inputStream.save() ? CLI::Log(CLI::Notice, "Done! Saved to \"", inputFilename, "\"")
+								: CLI::Log(CLI::Warning, "Error while saving: check if you have enough space.");
+			return;
 		}
 
 		// If the noaudio arg was used, quits immediately
@@ -233,15 +267,16 @@ int main(int argc, char *argv[])
 			"\n"
 			"\n"
 			"Options:\n"
-			"  --afw-debug		(Derived from AuroraFW) Activates AuroraFW debug mode \n"
-			"  -p			Prints input/output devices' info\n"
-			"  -o [filename]		Open the \"fileName\" music file\n"
-			"  -v [volume=1]		Sets the volume for playback. It ranges from 0 to 1 (bigger values distort sound)\n"
-			"  -noaudio		Plays no audio (used for debugging)\n"
-			"  -audio3d		Simulates 3D audio (the audio source spins at the center)\n"
-			"  -audioinfo	Print information about the audio file\n"
-			"  -loop [value=-1]	Loops the audio the num of times requested (-1 loops infinitely)\n"
-			"  -cpuLoad		Gets the medium CPU load"
+			"  -input [time=3] [output=out.ogg]	Captures input for the time specified and saves it\n"
+			"  --afw-debug				(Derived from AuroraFW) Activates AuroraFW debug mode \n"
+			"  -p					Prints input/output devices' info\n"
+			"  -o [filename]				pen the \"fileName\" music file\n"
+			"  -v [volume=1]				Sets the volume for playback. It ranges from 0 to 1 (bigger values distort sound)\n"
+			"  -noaudio				Plays no audio (used for debugging)\n"
+			"  -audio3d				Simulates 3D audio (the audio source spins at the center)\n"
+			"  -audioinfo				Print information about the audio file\n"
+			"  -loop [value=-1]			Loops the audio the num of times requested (-1 loops infinitely)\n"
+			"  -cpuLoad				Gets the medium CPU load"
 			<< endl;
 			return 0;
 		}
@@ -252,6 +287,11 @@ int main(int argc, char *argv[])
 		// Argument to open a file
 		if(std::string(argv[i]) == "-o") {
 			fileName = std::string(argv[i+1]);
+		}
+		// Argument to input audio
+		if(std::string(argv[i]) == "-input") {
+			inputTime = std::stof(std::string(argv[i+1]));
+			inputFilename = std::string(argv[i+2]);
 		}
 		// Argument to not output any audio
 		if(std::string(argv[i]) == "-noaudio") {
