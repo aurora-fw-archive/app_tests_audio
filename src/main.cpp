@@ -134,7 +134,7 @@ void appMainFunction(Application* )
 			AudioInfo* inputInfo = AFW_NEW AudioInfo();
 			inputInfo->setSampleRate(44100);
 			inputInfo->setChannels(2);
-			
+
 			inputInfo->setFormat(SF_FORMAT_OGG | SF_FORMAT_VORBIS);
 			DebugManager::Log(&inputInfo, "\t" , sizeof(inputInfo));
 			AudioIStream inputStream(inputFilename.c_str(), inputInfo, 44100 * inputTime);
@@ -149,9 +149,7 @@ void appMainFunction(Application* )
 			}
 			inputStream.record();
 			CLI::Log(CLI::Notice, "Record has started. Speak now...");
-			while(inputStream.isRecording()) {
-
-			}
+			while(inputStream.isRecording()) {}
 
 			CLI::Log(CLI::Notice, "Recording has ended, attempting to close stream...");
 			inputStream.stop();
