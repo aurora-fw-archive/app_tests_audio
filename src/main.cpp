@@ -152,10 +152,10 @@ void appMainFunction(Application* )
 			while(inputStream.isRecording()) {}
 
 			CLI::Log(CLI::Notice, "Recording has ended, attempting to close stream...");
-			inputStream.stop();
+			//inputStream.stop();
 			CLI::Log(CLI::Notice, "Stream stopped. Now recording into disk...");
 			inputStream.save() ? CLI::Log(CLI::Notice, "Done! Saved to \"", inputFilename, "\"")
-								: CLI::Log(CLI::Warning, "Error while saving: check if you have enough space.");
+				: CLI::Log(CLI::Warning, "Error while saving: check if you have enough space.");
 			return;
 		}
 
@@ -217,7 +217,6 @@ void appMainFunction(Application* )
 
 		// Waits until the song is over
 		int angle = 0;
-		DebugManager::Log(sizeof(angle));
 		int numCallsCpuLoad = 0;
 		double totalCpuValues = 0;
 		while(audioOStream.isPlaying())
